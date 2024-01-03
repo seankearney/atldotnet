@@ -3,6 +3,8 @@ using Commons;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using static ATL.AudioData.FileStructureHelper;
 using static ATL.TagData;
@@ -361,6 +363,23 @@ namespace ATL.AudioData.IO
             if (Field.RATING == ID)
             {
                 dataOut = TrackUtils.DecodePopularity(dataIn, ratingConvention).ToString();
+            }
+
+            if (Field.BPM == ID)
+            {
+                dataOut = TrimAndRemoveBOM(dataIn);
+
+                string TrimAndRemoveBOM(string input)
+                {
+                    var inputBytes = Encoding.Unicode.GetBytes(input);
+                    var bom = Encoding.Unicode.GetPreamble();
+                    if (!inputBytes.Take(bom.Length).SequenceEqual(bom))
+                    {
+                        bom = Array.Empty<byte>();
+                    }
+                    return Encoding.Unicode.GetString(inputBytes,
+                        bom.Length, inputBytes.Length - bom.Length).Trim();
+                }
             }
 
             tagData.IntegrateValue(ID, dataOut);
